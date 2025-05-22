@@ -1,4 +1,5 @@
 # requirements.txt
 # No external libraries required for core functionality, except for enhanced table view.
+# To run the code, you need to have Python installed on your system.
+
 tabulate
-# Python 3.6+ is recommended.

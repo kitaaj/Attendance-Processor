@@ -155,27 +155,47 @@ def discover_assignment_folders(root_dir: str, reporter: Reporter) -> List[str]:
         reporter.error(f"Error accessing submissions directory '{root_dir}': {e}")
         return []
 
-def get_submission_files_in_folder(folder_path: str, file_extension: str, reporter: Reporter) -> List[str]:
+def get_submission_files_in_folder(assignment_folder_path: str, file_extension: str, reporter: Reporter) -> List[str]:
     """
-    Gets all files with the specified extension from a single folder.
+    Gets all files with the specified extension from an assignment folder,
+    searching recursively through its subdirectories.
 
     Args:
-        folder_path (str): Path to the assignment folder.
+        assignment_folder_path (str): Path to the specific assignment folder
+                                     (e.g., './exercises/2025-03-03_01.04.57').
         file_extension (str): The file extension to look for (e.g., '.py').
         reporter (Reporter): Reporter instance for logging.
 
     Returns:
-        List[str]: A list of full file paths for submission files.
+        List[str]: A list of full file paths for submission files found within
+                   this assignment folder and its subdirectories.
     """
-    files = []
+    submission_files = []
+    if not os.path.isdir(assignment_folder_path):
+        reporter.warning(f"Assignment folder path is not a valid directory: {assignment_folder_path}")
+        return submission_files
+
+    reporter.info(f"Searching for '{file_extension}' files in and under '{assignment_folder_path}'...")
     try:
-        for item in os.listdir(folder_path):
-            if os.path.isfile(os.path.join(folder_path, item)) and item.endswith(file_extension):
-                files.append(os.path.join(folder_path, item))
-        return files
+        for dirpath, dirnames, filenames in os.walk(assignment_folder_path):
+            # dirpath is the current directory being walked
+            # dirnames is a list of subdirectories in dirpath
+            # filenames is a list of files in dirpath
+            for filename in filenames:
+                if filename.endswith(file_extension):
+                    full_file_path = os.path.join(dirpath, filename)
+                    submission_files.append(full_file_path)
+                    # reporter.info(f"  Found: {full_file_path}") # Can be too verbose, remove if not needed for detailed logs
+        
+        if not submission_files:
+            reporter.info(f"  No '{file_extension}' files found in or under '{assignment_folder_path}'.")
+        else:
+            reporter.info(f"  Found {len(submission_files)} '{file_extension}' file(s) in/under '{assignment_folder_path}'.")
+
     except Exception as e:
-        reporter.error(f"Error reading files in folder '{folder_path}': {e}")
-        return []
+        reporter.error(f"Error walking through directory '{assignment_folder_path}': {e}")
+    
+    return submission_files
 
 def save_student_data(filepath: str, students: List[Dict], reporter: Reporter, num_assignment_marks_to_write: int):
     """

@@ -81,7 +81,7 @@ Navigate to the directory containing the `attendance_processor` package (i.e., t
 Run the script from your terminal:
 
 ```bash
-python -m attendance_processor.main [namelist_file] [submissions_root_dir] [--ext FILE_EXTENSION]
+python -m attendance_processor.main process [namelist_file] [submissions_root_dir] [--ext FILE_EXTENSION]
 ```
 
 **Arguments:**
@@ -95,18 +95,18 @@ python -m attendance_processor.main [namelist_file] [submissions_root_dir] [--ex
 1.  Run with default file/directory names (`namelist.txt`, `submissions/`, `.py` files):
 
 ```bash
-    python -m attendance_processor.main
+    python -m attendance_processor.main process
 ```
 
 2.  Specify a different namelist file and submissions directory:
 
 ```bash
-    python -m attendance_processor.main my_students.txt course_assignments/
+    python -m attendance_processor.main process my_students.txt course_assignments/
 ```
 
 3.  Process `.zip` files instead of `.py`:
 ```bash
-    python -m attendance_processor.main --ext .zip
+    python -m attendance_processor.main process --ext .zip
 ```
 
 ## Output
