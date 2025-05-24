@@ -1,0 +1,305 @@
+\documentclass[11pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{bera}
+
+\geometry{
+    a4paper,
+    total={170mm,257mm},
+    left=20mm,
+    top=20mm,
+}
+
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{white},
+    commentstyle=\color{green!60!black},
+    keywordstyle=\color{blue},
+    numberstyle=\tiny\color{gray},
+    stringstyle=\color{purple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2,
+    frame=single,
+    rulecolor=\color{black!30},
+    title=\lstname
+}
+\lstset{style=mystyle}
+\usepackage{xcolor}
+
+\title{Program Design \& Implementation Report \\ \large Automated Student Assignment/Attendance Registration and Attendance Rate Statistics System}
+\author{[We will put your name here]}
+\date{2025-05-20}
+
+\begin{document}
+\maketitle
+\noindent\textbf{Student ID:} [Your ID]
+\vspace{1cm}
+
+\section*{a. Topic Problem Goal}
+The goal of this project is to develop a Python command-line application that automates the process of tracking student assignment submissions or class attendance. The system reads a list of students and their current records from a text file. It then scans a designated directory structure containing multiple subfolders, where each subfolder represents a specific assignment, lab, or check-in period. Within these assignment folders (and their sub-subfolders), the system identifies student submission files based on a specified file extension. It extracts student IDs from the filenames, updates the corresponding student's record to mark the submission/attendance, calculates total submissions and an attendance/submission rate for each student, and finally, writes the updated records back to the student list file. The system also provides detailed logging, error reporting, and options to query student data and view the attendance analysis in a formatted table.
+
+\section*{b. Solution Conditions}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Input Data Source 1 (Student Roster):}
+    \begin{itemize}
+        \item A plain text file (e.g., \texttt{namelist.txt}).
+        \item Columns are separated by a Tab character (\texttt{\textbackslash t}).
+        \item The first line (and subsequent lines) must contain at least the Student ID and Student Name. For instance: \texttt{StudentID\textbackslash tStudentFullName\textbackslash tMark1\textbackslash tMark2\textbackslash t...\textbackslash tMarkN}.
+        \item The number of initial mark columns (e.g., \texttt{Mark1} to \texttt{MarkN}) is dynamically determined from the first valid data line in this file.
+        \item The file will be updated by the program to include two additional columns at the end of each student's record: \texttt{TotalSubmissions} and \texttt{SubmissionRate}.
+    \end{itemize}
+
+    \item \textbf{Input Data Source 2 (Submissions Directory):}
+    \begin{itemize}
+        \item A root directory (e.g., \texttt{./exercises/} or \texttt{./submissions/}) containing multiple direct subfolders.
+        \item Each direct subfolder within this root directory represents a unique assignment, lab, or check-in session (e.g., \texttt{./exercises/2025-03-03\_01.04.57/}). The system processes these assignment folders in alphabetical order.
+    \end{itemize}
+
+    \item \textbf{Input File Format (Student Submissions):}
+    \begin{itemize}
+        \item Student submitted files are located within the aforementioned assignment subfolders. These files may be directly in the assignment folder (e.g.,\\ \texttt{ASSIGNMENT\_FOLDER/student\_file.py}) or nested within further sub-subfolders created by students (e.g., \texttt{ASSIGNMENT\_FOLDER/STUDENT\_CREATED\_FOLDER/student\_file.py}).
+        \item Filenames of submitted files \textbf{must contain the student's 8-digit ID} for the system to recognize and process them (e.g.,\\ \texttt{20240135\_assignment1.py} or \texttt{C607-46\_20241314.Wendy\_Angelina.zip}).
+        \item The system searches for files of a specific type, identified by a file extension (e.g., \texttt{.py}, \texttt{.zip}, \texttt{.txt}), which is configurable via a command-line argument.
+    \end{itemize}
+
+    \item \textbf{Output:}
+    \begin{itemize}
+        \item \textbf{Updated Student List File:} An updated version of the input student list text file, with existing mark columns updated (a '1' indicates submission, '0' otherwise for each processed assignment), and two appended columns: the total number of submissions/attendances recorded for the student, and their submission/attendance rate (as a float formatted to two decimal places).
+        \item \textbf{Console Output Logs:} Detailed logs during program execution, including initialization messages, configuration, status of data loading, discovery of assignment folders, processing details for each folder (files found, IDs extracted, errors), and summaries.
+        \item \textbf{Processing Statistics for Each Check-in Sequence (Subfolder):} Includes files found, students marked, and error counts for that specific folder.
+        \item \textbf{Overall Processing Statistics:} Total files processed, total successful marks, total errors, and a list of all error files with reasons.
+        \item \textbf{Query Results (Optional):} Formatted display of a specific student's details when using the \texttt{query} command.
+        \item \textbf{Table View (Optional):} A formatted table displaying all students' data when using the \texttt{view} command or the \texttt{--view} option with \texttt{process}.
+    \end{itemize}
+
+    \item \textbf{Constraints:}
+    \begin{itemize}
+        \item Student ID is an 8-digit number (e.g., \texttt{20240135}).
+        \item Filenames of student submissions must contain this 8-digit student ID.
+        \item The student list file format must be tab-delimited. Initial structure: ID, Name, and initial mark columns.
+        \item The number of assignments processed is limited by the mark columns in \texttt{namelist.txt}.
+    \end{itemize}
+\end{itemize}
+
+\section*{c. Functional Requirements}
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Data Input \& Loading:}
+    \begin{itemize}
+        \item Load student data from tab-delimited text file into memory (list of dictionaries).
+        \item Dynamically determine assignment mark columns from the first valid line.
+        \item Handle pre-existing "Total" and "Rate" columns from previous runs.
+        \item Robust error handling for file issues and malformed lines.
+    \end{itemize}
+\newpage
+    \item \textbf{File System Traversal \& Identification:}
+    \begin{itemize}
+        \item Identify and traverse direct subfolders in the root submissions directory (alphabetical order for assignments).
+        \item Recursively find submission files within each assignment subfolder matching a specified extension.
+    \end{itemize}
+
+    \item \textbf{Information Extraction:}
+    \begin{itemize}
+        \item Extract 8-digit student ID from submission filenames using regular expressions.
+    \end{itemize}
+
+    \item \textbf{Data Processing \& Updating:}
+    \begin{itemize}
+        \item Look up student records by extracted ID.
+        \item Determine correct assignment column based on folder order.
+        \item Mark submission by setting the value to '1'.
+        \item Handle exceptions: ID not extractable, ID not found, assignment index out of bounds.
+    \end{itemize}
+
+    \item \textbf{Result Calculation:}
+    \begin{itemize}
+        \item Calculate total submissions for each student.
+        \item Calculate submission/attendance rate (Total Submissions / Assignments Considered).
+    \end{itemize}
+
+    \item \textbf{Data Output \& Reporting:}
+    \begin{itemize}
+        \item Write updated records (marks, total, rate) back to the student list file, overwriting it.
+        \item Output detailed processing logs.
+        \item Output summary for each assignment folder and an overall processing summary.
+        \item List all error files with reasons.
+    \end{itemize}
+
+    \item \textbf{CLI Functionality:}
+    \begin{itemize}
+        \item Provide actions: \texttt{process}, \texttt{query}, \texttt{view}.
+        \item Allow CLI arguments for namelist, submissions directory, and file extension.
+        \item Use \texttt{tabulate} for formatted table outputs.
+    \end{itemize}
+\end{itemize}
+
+\section*{d. Code Style and Norms Requirements}
+The project implementation adheres to the following norms:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Follow PEP 8 Style Guide:} Including 4-space indentation, line length considerations, snake\_case for variables/functions/modules, UPPER\_CASE for constants, and appropriate blank lines.
+    \item \textbf{Clear Naming:} Descriptive names for variables and functions.
+    \item \textbf{Necessary Comments:} Docstrings for modules, classes, functions, and in-line comments for clarity.
+    \item \textbf{Reasonable Function Division (Modularity):} Code organized into modules (\texttt{main.py}, \texttt{file\_operations.py}, \texttt{processing.py}, \texttt{reporting.py}, \texttt{config.py}) with distinct responsibilities.
+    \item \textbf{Error Handling:} Use of \texttt{try-except} blocks, informative error/warning messages, and graceful handling of problematic conditions.
+\end{itemize}
+
+\section*{e. Rough Steps of the Solution}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Configure Parameters \& Setup (CLI Parsing in \texttt{main.py}):} Parse arguments, initialize \texttt{Reporter}. Constants in \texttt{config.py}.
+    \item \textbf{Load Student Data (\texttt{file\_operations.load\_student\_data}):} Open namelist, read lines, split by Tab, determine mark columns, handle existing Total/Rate, store as list of dictionaries. Error handling for malformed data.
+    \item \textbf{Identify Check-in (Assignment) Folders (\texttt{file\_operations.discover\_assignment\_folders}):} Get direct subfolders in submissions root, sort alphabetically. Warn if folder count exceeds namelist capacity.
+    \item \textbf{Loop Through Check-in Folders \& Process Submissions (in \texttt{main.py}'s \texttt{handle\_process\_action}):}
+    For each assignment folder (up to namelist capacity):
+    \begin{itemize}
+        \item Initialize folder stats.
+        \item Recursively get submission files (\texttt{file\_operations.get\_submission\_files\_in\_folder}).
+        \item For each submission file:
+        \begin{itemize}
+            \item Extract Student ID (\texttt{processing.extract\_student\_id}).
+            \item If ID extracted: Find student. If found \& index valid: Mark submission (\texttt{processing.mark\_submission}). Else: Log error.
+            \item Else (ID not extracted): Log error.
+        \end{itemize}
+        \item Report Folder Summary (\texttt{reporter.folder\_summary}).
+    \end{itemize}
+    \item \textbf{Calculate and Store Attendance/Submission Rate (\texttt{processing.calculate\_final\_statistics}):} For each student, calculate total and rate.
+    \item \textbf{Save Updated Data (\texttt{file\_operations.save\_student\_data}):} Overwrite namelist with updated records.
+    \item \textbf{Output Overall Report (\texttt{reporter.overall\_summary}):} Print overall stats and error list.
+\end{enumerate}
+\newpage
+\section*{f. Program Flowchart}
+% --- Placeholder for Flowchart ---
+% You would typically generate the flowchart using a tool like draw.io, Lucidchart,
+% or a LaTeX package like TikZ, save it as a PDF, and include it here.
+% Example: \includegraphics[width=\textwidth]{path/to/your/flowchart.pdf}
+% For now, a textual description is provided in the report content.
+% Alternatively, for simple flowcharts, you could use TikZ directly.
+% This is a complex task for direct generation here.
+\begin{center}
+    \textit{A visual flowchart would be included here, depicting the main program logic for actions like 'process', 'query', and 'view', including decision points and loops as described in the textual report.}
+    \vspace{1cm}
+    (Refer to the textual description in section 'e' for a step-by-step logical flow.)\\ \textit {Better still, if you have the flowchart, send it so that we insert it here.}
+\end{center}
+
+\newpage
+\section*{g. Specific Code Implementation and Result}
+This section includes key code snippets and example program outputs.
+
+\subsection*{Key Code Snippet: Student ID Extraction}
+From \texttt{attendance\_processor/processing.py}:
+\begin{lstlisting}[language=Python, caption=Student ID Extraction Logic, basicstyle=\ttfamily\scriptsize]
+# processing.py
+import re
+from .config import STUDENT_ID_REGEX # STUDENT_ID_REGEX = r'(?<!\d)(\d{8})(?!\d)'
+from typing import Optional # Ensure Optional is imported if not already
+from .reporting import Reporter # Ensure Reporter is imported if not already
+
+def extract_student_id(filename: str, reporter: Reporter) -> Optional[str]:
+    """
+    Extracts an 8-digit student ID from a filename using regex.
+    """
+    match = re.search(STUDENT_ID_REGEX, filename)
+    if match:
+        return match.group(1)
+    return None
+\end{lstlisting}
+
+\subsection*{Example Console Output (Illustrative)}
+The following demonstrates typical console output during the 'process' action:
+\begin{lstlisting}[language=bash, caption=Illustrative Console Output, basicstyle=\ttfamily\tiny]
+[INFO] Starting Student Submission Processor CLI...
+[INFO] Action: Process Submissions
+[INFO] Namelist file: namelist.txt
+[INFO] Submissions directory: exercises
+[INFO] Processing file extension: .py
+[INFO] Namelist structure: Expecting 9 assignment mark column(s).
+[INFO] Found 8 assignment folder(s): [2025-03-03_01.04.57, ..., 2025-04-21_01.40.00]
+---
+[INFO] Processing folder: '2025-03-03_01.04.57' (Assignment 1)
+[INFO] Searching for '.py' files in and under 'exercises/2025-03-03_01.04.57'...
+[INFO]   Found 23 '.py' file(s) in/under 'exercises/2025-03-03_01.04.57'.
+[WARNING] File 'C607-06_hello world.py' in folder '2025-03-03_01.04.57': Could not extract student ID.
+[WARNING] File 'C607-07_20241162_Tebenkov.py' in folder '2025-03-03_01.04.57': Student ID '20241162' not found in namelist.
+...
+==============================
+[INFO] Summary for folder: 2025-03-03_01.04.57
+  Files found (.py): 23
+  Students successfully marked: 17
+  File errors in this folder: 5
+==============================
+...
+[INFO] Calculating totals and rates based on 8 assignment(s).
+[INFO] Successfully saved updated student data to namelist.txt
+--- Overall Processing Summary ---
+[INFO] Overall Processing Summary
+  Total assignment folders processed: 8
+  Total submission files found: 256
+  Total submissions successfully recorded: [Actual count]
+  Total file-related errors encountered: 19
+  Error File Details:
+    - exercises/2025-03-03_01.04.57/C607-06/C607-06_hello world.py: Could not extract student ID.
+    ... (list all other errors) ...
+[INFO] Processing action complete.
+\end{lstlisting}
+
+\section*{h. Problems Encountered and Solutions}
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Text File Parsing Issues:}
+    \begin{itemize}
+        \item \textbf{Problem:} Namelist files might contain blank lines, inconsistent spacing, or malformed lines. Previously processed files would also contain "Total" and "Rate" columns, causing misinterpretation.
+        \item \textbf{Solution:} Implemented checks to skip blank lines. Enhanced \texttt{load\_student\_data} to split lines by Tab, perform length checks, use \texttt{try-except} for mark parsing, and dynamically detect/handle pre-existing "Total"/"Rate" columns. Warnings are logged for malformed lines.
+    \end{itemize}
+
+    \item \textbf{Regular Expression Student ID Extraction Issue:}
+    \begin{itemize}
+        \item \textbf{Problem:} Varied filename formats. Simple regex \texttt{\textbackslash d\{8\}} could mismatch. Initial \texttt{\textbackslash b(\textbackslash d\{8\})\textbackslash b} failed with underscores.
+        \item \textbf{Solution:} Refined regex to \texttt{(?<!\textbackslash d)(\textbackslash d\{8\})(?!\textbackslash d)} for robust standalone 8-digit ID extraction, using negative lookbehind and lookahead.
+    \end{itemize}
+
+    \item \textbf{Recursive File Discovery in Assignment Folders:}
+    \begin{itemize}
+        \item \textbf{Problem:} Initial design assumed files were directly in assignment folders. Needed to support student-created subfolders.
+        \item \textbf{Solution:} Modified \texttt{get\_submission\_files\_in\_folder} to use \texttt{os.walk()} for recursive traversal.
+    \end{itemize}
+    
+    \item \textbf{Dynamic File Extension in Reporting:}
+    \begin{itemize}
+        \item \textbf{Problem:} Log messages for file searches had hardcoded extensions.
+        \item \textbf{Solution:} Updated \texttt{Reporter.folder\_summary} to accept \texttt{file\_extension} as an argument, passed from \texttt{main.py} (\texttt{args.ext}).
+    \end{itemize}
+
+    \item \textbf{Handling More Assignment Folders than Namelist Mark Columns:}
+    \begin{itemize}
+        \item \textbf{Problem:} Potential index errors if more assignment folders exist than available mark columns in the namelist.
+        \item \textbf{Solution:} The program determines available mark columns and processes assignments only up to this limit. A warning is logged if more folders are found. Rate calculation also respects this limit.
+    \end{itemize}
+\end{enumerate}
+
+\section*{i. Project Learning Experience}
+Through completing this Final Project, I gained a deeper understanding of Python's capabilities in automating office tasks and data processing. I learned and practiced the following key skills:
+\begin{itemize}[leftmargin=*]
+    \item \textbf{File Operations and File System Interaction:} Reading/writing text files, parsing structured data, directory traversal (\texttt{os.listdir}, \texttt{os.walk}), and path manipulation (\texttt{os.path.join}).
+    \item \textbf{String Processing and Regular Expressions:} String methods, crafting and applying robust regular expressions (\texttt{re} module) for ID extraction using lookarounds.
+    \item \textbf{Data Structures and Manipulation:} Effective use of lists and dictionaries for managing student data.
+    \item \textbf{Modular Program Design \& Separation of Concerns:} Organizing code into logical modules for better readability and maintainability.
+    \item \textbf{Command-Line Interface (CLI) Development:} Using \texttt{argparse} for user-friendly CLI with commands, arguments, and help messages.
+    \item \textbf{Error Handling and Robustness:} Implementing \texttt{try-except} blocks, providing informative error messages, and handling edge cases.
+    \item \textbf{Code Readability and Maintainability (PEP 8):} Adhering to styling guidelines and writing clear documentation.
+    \item \textbf{Using External Libraries:} Integrating \texttt{tabulate} for enhanced console table presentation.
+\end{itemize}
+In summary, this project provided practical experience in developing a complete Python application, reinforcing the importance of planning, modular design, robust error handling, and clear user interaction. The iterative refinement of features was a valuable learning experience.
+
+\end{document}
