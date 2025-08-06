@@ -1,4 +1,3 @@
-# attendance_processor/main.py
 
 import argparse
 import os
@@ -92,7 +91,6 @@ def handle_process_action(args, reporter: Reporter):
     # Recalculate final statistics for ALL students based on their marks arrays
     # The number of assignments for rate calculation is num_assignment_cols (the capacity of the sheet)
     # or num_assignments_to_process if we only want to rate based on folders we could process.
-    # Let's use num_assignment_cols, as the sheet is structured for that many.
     processing.calculate_final_statistics(students_list, num_assignment_cols, num_assignment_cols, reporter)
     
     file_operations.save_student_data(args.namelist_file, students_list, reporter, num_assignment_cols)
@@ -144,7 +142,6 @@ def handle_query_action(args, reporter: Reporter):
             reporter.info(f"Found {len(found_student_list)} students matching '{args.identifier}'. Displaying all:")
         for s in found_student_list:
             # Ensure total/rate are calculated for display if they weren't perfectly loaded or are from an old run
-            # Note: load_student_data now loads total/rate. This re-calc is for consistency or if source was raw.
             temp_list_for_calc = [s] # Calculate for this student only
             processing.calculate_final_statistics(temp_list_for_calc, num_assignment_cols, num_assignment_cols, reporter)
             display_student_details(s, num_assignment_cols, reporter)
@@ -168,8 +165,6 @@ def handle_view_action(args, reporter: Reporter):
         return
 
     # Ensure totals/rates are fresh for display, especially if `load_student_data`
-    # might not have perfectly loaded them or if they are from an old calculation.
-    # `load_student_data` now loads them, but re-calculating ensures consistency for view.
     processing.calculate_final_statistics(students_list, num_assignment_cols, num_assignment_cols, reporter)
 
     display_attendance_table(students_list, num_assignment_cols, reporter)

@@ -9,6 +9,8 @@
 \usepackage{hyperref}
 \usepackage{listings}
 \usepackage{bera}
+\usepackage{adjustbox}
+
 
 \geometry{
     a4paper,
@@ -41,9 +43,11 @@
 \lstset{style=mystyle}
 \usepackage{xcolor}
 
-\title{Program Design \& Implementation Report \\ \large Automated Student Assignment/Attendance Registration and Attendance Rate Statistics System}
+\title{Program Design \& Implementation Report \\ \large 
+\vspace{0.5cm}
+Automated Student Assignment/Attendance Registration and Attendance Rate Statistics System}
 \author{[We will put your name here]}
-\date{2025-05-20}
+\date{}
 
 \begin{document}
 \maketitle
@@ -181,18 +185,16 @@ The project implementation adheres to the following norms:
 \end{enumerate}
 \newpage
 \section*{f. Program Flowchart}
-% --- Placeholder for Flowchart ---
-% You would typically generate the flowchart using a tool like draw.io, Lucidchart,
-% or a LaTeX package like TikZ, save it as a PDF, and include it here.
-% Example: \includegraphics[width=\textwidth]{path/to/your/flowchart.pdf}
-% For now, a textual description is provided in the report content.
-% Alternatively, for simple flowcharts, you could use TikZ directly.
-% This is a complex task for direct generation here.
-\begin{center}
-    \textit{A visual flowchart would be included here, depicting the main program logic for actions like 'process', 'query', and 'view', including decision points and loops as described in the textual report.}
-    \vspace{1cm}
-    (Refer to the textual description in section 'e' for a step-by-step logical flow.)\\ \textit {Better still, if you have the flowchart, send it so that we insert it here.}
-\end{center}
+    \textit{The flowchart visually depicts the program's operational flow, including decision points and loops as detailed in section 'e'.}
+\begin{figure}[htbp]
+    \centering
+    \begin{adjustbox}{max width=0.95\textwidth, max height=0.7\textheight, keepaspectratio} 
+        \includegraphics[]{flowchart.jpg} 
+    \end{adjustbox}
+    \caption{Program Flowchart illustrating the main logic for process, query, and view actions.}
+    \label{fig:flowchart}
+\end{figure}
+
 
 \newpage
 \section*{g. Specific Code Implementation and Result}
